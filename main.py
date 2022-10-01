@@ -3,6 +3,12 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
 
+FILENAME = 'Affiliate515 - Sheet1.csv'
+COLUMNS = ['No',
+            'ID',
+            'Title',
+            'Campaign-Tagged URL']
+START_ROW_NUM = 5
 HEADER = {
     'authority': 'www.dickssportinggoods.com',
     'pragma': 'no-cache',
@@ -33,24 +39,56 @@ def get_browser():
 
 def get_book_data(url):
     mybrowser = get_browser()
+    mybrowser.maximize_window()
     mybrowser.get(url)
-    time.sleep(2)
+    time.sleep(10)
     book_title = mybrowser.find_element(by=By.XPATH,value="//div[@class='book-title']").text
-    time.sleep(1)
+    time.sleep(5)
     author = mybrowser.find_element(by=By.XPATH, value="//span/a").text
-    time.sleep(1)
+    time.sleep(5)
     desc = mybrowser.find_element(by=By.XPATH, value="//div[@class='product-desc']").text
-    time.sleep(1)
+    time.sleep(5)
     detail = mybrowser.find_element(by=By.XPATH, value="//div[@class='detail-section']").text
-    time.sleep(1)
+    time.sleep(5)
     price_promo = mybrowser.find_element(by=By.XPATH, value="//div[@class='price-promo']").text
-    time.sleep(1)   
+    time.sleep(5)   
     badge_discount = mybrowser.find_element(by=By.XPATH, value="//div[@class='badge-discount']").text
-    time.sleep(1)  
+    time.sleep(5)  
     discounted_price = mybrowser.find_element(by=By.XPATH, value="//div[@class='price-from']").text
-    time.sleep(1)
+    time.sleep(5)
     img_url = mybrowser.find_element(by=By.XPATH, value="//div[@class='image']/img").get_attribute('src')
-    return book_title,author,desc, detail,price_promo,badge_discount,discounted_price,img_url
+    return book_title,author,url, desc, detail,price_promo,badge_discount,discounted_price,img_url
+
+def get_dataframe(filename=FILENAME,columns=COLUMNS, start_row_num = START_ROW_NUM):
+    orig_df = pd.read_csv(f'{filename}')
+    df = orig_df[start_row_num-1:]
+    df.columns = columns
+    return df
 
 if __name__=='__main__':
-    print(get_book_data(url))
+    import pandas as pd
+    import csv
+
+    
+    with open('data.csv', 'a+', encoding='UTF8', newline='') as f:
+        writer = csv.writer(f)
+        col_names = ['Book Title',
+                    'Author',
+                    'URL',
+                    'Description',
+                    'Detail',
+                    'Price',
+                    'Discount',
+                    'Disc. Price',
+                    'Img URL']
+        writer.writerow(COLUMNS)
+        data = []
+        df = get_dataframe()
+        for index,row in df.iterrows():
+            url = row[-1]
+            try:
+                data.append(get_book_data(url))
+                print(data[-1])
+                writer.writerow(data[-1])
+            except:
+                pass
